@@ -142,6 +142,14 @@ stages:
         timeoutInMinutes: 0
         steps:
           - template: azdo-template-get-model-version.yml
+          - task: AzureCLI@1
+            displayName: "Smoke test"
+            inputs:
+              azureSubscription: "$(WORKSPACE_SVC_CONNECTION)"
+              scriptLocation: inlineScript
+              inlineScript: |
+                set -e # fail on error
+                az -v
           - task: ms-air-aiagility.vss-services-azureml.azureml-model-deploy-task.AMLModelDeploy@0
             displayName: "Azure ML Model Deploy"
             inputs:
