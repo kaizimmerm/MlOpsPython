@@ -142,14 +142,6 @@ stages:
         timeoutInMinutes: 0
         steps:
           - template: azdo-template-get-model-version.yml
-          - task: AzureCLI@1
-            displayName: "Smoke test"
-            inputs:
-              azureSubscription: "$(WORKSPACE_SVC_CONNECTION)"
-              scriptLocation: inlineScript
-              inlineScript: |
-                set -e # fail on error
-                az -v
           - task: ms-air-aiagility.vss-services-azureml.azureml-model-deploy-task.AMLModelDeploy@0
             displayName: "Azure ML Model Deploy"
             inputs:
@@ -163,6 +155,14 @@ stages:
               deploymentName: $(AKS_DEPLOYMENT_NAME)
               deployConfig: "$(Build.SourcesDirectory)/code/scoring/deployment_config_aks.yml"
               overwriteExistingDeployment: true
+          - task: AzureCLI@1
+            displayName: "Verify CLI version"
+            inputs:
+              azureSubscription: "$(WORKSPACE_SVC_CONNECTION)"
+              scriptLocation: inlineScript
+              inlineScript: |
+                set -e # fail on error
+                az ml model deploy --ct $(AKS_COMPUTE_NAME) -n $(AKS_DEPLOYMENT_NAME) --model $(MODEL_NAME):$(MODEL_VERSION) --ic $(Build.SourcesDirectory)/code/scoring/inference_config.yml --dc $(Build.SourcesDirectory)/code/scoring/deployment_config_aks.yml -g mlops-RG -w mlops-AML-WS --overwrite
           - task: AzureCLI@1
             displayName: "Smoke test"
             inputs:
